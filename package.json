@@ -1,0 +1,47 @@
+{
+  "name": "opencode-triton-ascend",
+  "version": "0.1.0",
+  "description": "Triton-Ascend operator generation workflow for opencode: primary agent, 10 skills, core knowledge cards, and baseline guard hooks.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": "./index.js",
+  "bin": {
+    "opencode-triton-ascend": "./bin/install.js"
+  },
+  "files": [
+    "index.js",
+    "lib/",
+    "bin/",
+    "agents/",
+    "skills/",
+    "knowledge/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "triton",
+    "triton-ascend",
+    "ascend",
+    "npu",
+    "agent-skills",
+    "operator"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ElleElleWu/ascend-triton-agent.git"
+  },
+  "homepage": "https://github.com/ElleElleWu/ascend-triton-agent#readme",
+  "bugs": {
+    "url": "https://github.com/ElleElleWu/ascend-triton-agent/issues"
+  },
+  "author": "ElleElleWu"
+}
