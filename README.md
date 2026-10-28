@@ -139,6 +139,8 @@ npm pack --dry-run
 
 ## 首版限制
 
+- 已在 opencode 1.19.4 验证 agent/Skill 发现与插件模块加载；模型会话返回空 step，未在真实对话中触发 guard；
+- 1.19.4 只自动发现 `.opencode/plugins/*.js` 顶层文件，不扫描嵌套目录；安装器已按此适配；
 - 未在真实 opencode + Ascend NPU 环境完成端到端联调；
 - 9 个能力 Skill 的脚本来自 cannbot-skills，路径与依赖按 opencode 布局做了复制，尚未逐脚本验证；
 - 未发布到 npm；npm 包名 `opencode-triton-ascend` 目前未被占用；
