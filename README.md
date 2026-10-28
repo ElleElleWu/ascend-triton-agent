@@ -1,5 +1,9 @@
 # opencode-triton-ascend
 
+[![test](https://github.com/ElleElleWu/ascend-triton-agent/actions/workflows/test.yml/badge.svg)](https://github.com/ElleElleWu/ascend-triton-agent/actions/workflows/test.yml)
+
+GitHub: <https://github.com/ElleElleWu/ascend-triton-agent>
+
 Triton-Ascend 算子生成与优化工作流，面向 [opencode](https://opencode.ai)。一个 npm 包同时包含：
 
 - 一个主编排 agent：`triton-op-generator`
