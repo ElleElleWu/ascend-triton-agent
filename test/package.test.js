@@ -51,6 +51,7 @@ test("agent, skills and knowledge are present", () => {
   const agent = readFileSync(join(ROOT, "agents", "triton-op-generator.md"), "utf8")
   assert.match(agent, /^---\n/)
   assert.match(agent, /^mode:\s*primary$/m)
+  assert.ok(agent.split("\n").length > 900, "agent prompt should keep the full Phase 0-7 workflow")
 
   for (const skill of SKILLS) {
     const file = join(ROOT, "skills", skill, "SKILL.md")
@@ -88,6 +89,7 @@ test("installer copies assets and a local plugin", async () => {
     assert.ok(
       existsSync(join(target, ".opencode", "knowledge", "ops", "triton", "guides", "constraints", "index.md")),
     )
+    assert.ok(existsSync(join(target, ".opencode", "triton-op-generator.config.json")))
 
     const pluginPath = join(target, ".opencode", "plugins", "triton-ascend.js")
     assert.ok(existsSync(pluginPath))

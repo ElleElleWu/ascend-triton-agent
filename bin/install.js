@@ -90,6 +90,7 @@ function main() {
   copyDir(join(PACKAGE_ROOT, "agents"), join(opencodeDir, "agents"))
   copyDir(join(PACKAGE_ROOT, "skills"), join(opencodeDir, "skills"))
   copyDir(join(PACKAGE_ROOT, "knowledge"), join(opencodeDir, "knowledge"))
+  copyFile(join(PACKAGE_ROOT, "config.json"), join(opencodeDir, "triton-op-generator.config.json"))
 
   let configPath = null
   if (options.mode === "npm") {
@@ -110,6 +111,7 @@ function main() {
   console.log(`  agents:    ${join(opencodeDir, "agents")}`)
   console.log(`  skills:    ${join(opencodeDir, "skills")}`)
   console.log(`  knowledge: ${join(opencodeDir, "knowledge")}`)
+  console.log(`  config:    ${join(opencodeDir, "triton-op-generator.config.json")}`)
   console.log(`  plugin:    ${options.mode === "npm" ? "opencode.json plugin array" : join(opencodeDir, "plugins", "triton-ascend.js")}`)
   if (configPath) console.log(`  config:    ${configPath}`)
   console.log("")

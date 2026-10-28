@@ -6,7 +6,7 @@ GitHub: <https://github.com/ElleElleWu/ascend-triton-agent>
 
 Triton-Ascend 算子生成与优化工作流，面向 [opencode](https://opencode.ai)。一个 npm 包同时包含：
 
-- 一个主编排 agent：`triton-op-generator`
+- 一个主编排 agent：`triton-op-generator`，完整 Phase 0-7 prompt（约 1,100 行）
 - 10 个 Skill：1 个 Phase 0-7 编排 + 9 个能力 Skill
 - 63 个 Triton-Ascend 核心知识文件：类别约束卡、编程指南、API 参考、调试清单
 - 3 个 hook：baseline 路径保护、知识库路径注入、无 NPU 环境提示
@@ -25,7 +25,8 @@ npx opencode-triton-ascend install
 1. 复制 `agents/` 到 `.opencode/agents/`
 2. 复制 `skills/` 到 `.opencode/skills/`
 3. 复制 `knowledge/` 到 `.opencode/knowledge/`
-4. 默认把插件复制到 `.opencode/plugins/triton-ascend.js`（guard helper 同目录），不依赖 npm 发布即可加载
+4. 复制 `config.json` 到 `.opencode/triton-op-generator.config.json`
+5. 默认把插件复制到 `.opencode/plugins/triton-ascend.js`（guard helper 同目录），不依赖 npm 发布即可加载
 
 还没发布 npm 时，可以直接从 GitHub 安装：
 
@@ -70,6 +71,7 @@ npx opencode-triton-ascend install --npm
 ```text
 opencode-triton-ascend/
 ├── index.js                         # plugin：hooks
+├── config.json                      # target_speedup / npu_preflight 默认值
 ├── lib/guard.js                     # 路径保护 helper
 ├── bin/install.js                   # 资产安装器
 ├── agents/
@@ -132,7 +134,7 @@ npm pack --dry-run
 当前结果：
 
 - 10/10 通过；
-- npm 包 431 文件、1.6 MB tarball、5.4 MB unpacked；
+- npm 包 432 文件、1.6 MB tarball、5.4 MB unpacked；
 - 用 tarball 在临时项目安装，安装器成功复制 10 个 Skill、64 个知识文件，以及本地插件；
 - `import("opencode-triton-ascend")` 只导出 `TritonAscend`；guard helper 在 `lib/guard.js`，不作为插件导出。
 - GitHub Actions `test` 通过；`npm i -D github:ElleElleWu/ascend-triton-agent` 直装验证通过。
