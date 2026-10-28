@@ -95,20 +95,22 @@ function main() {
   if (options.mode === "npm") {
     configPath = upsertOpencodeConfig(target)
   } else {
-    const pluginDir = join(opencodeDir, "plugins", "triton-ascend")
-    copyFile(join(PACKAGE_ROOT, "index.js"), join(pluginDir, "index.js"))
-    copyDir(join(PACKAGE_ROOT, "lib"), join(pluginDir, "lib"))
-    writeFileSync(
-      join(pluginDir, "package.json"),
-      `${JSON.stringify({ private: true, type: "module" }, null, 2)}\n`,
+    // opencode only auto-discovers top-level *.js files under .opencode/plugins/,
+    // not nested directories. Copy a rewritten entry point plus its guard helper.
+    const pluginDir = join(opencodeDir, "plugins")
+    const entry = readFileSync(join(PACKAGE_ROOT, "index.js"), "utf8").replace(
+      'from "./lib/guard.js"',
+      'from "./triton-ascend-guard.js"',
     )
+    copyFile(join(PACKAGE_ROOT, "lib", "guard.js"), join(pluginDir, "triton-ascend-guard.js"))
+    writeFileSync(join(pluginDir, "triton-ascend.js"), entry)
   }
 
   console.log(`triton-op-generator installed into ${target}`)
   console.log(`  agents:    ${join(opencodeDir, "agents")}`)
   console.log(`  skills:    ${join(opencodeDir, "skills")}`)
   console.log(`  knowledge: ${join(opencodeDir, "knowledge")}`)
-  console.log(`  plugin:    ${options.mode === "npm" ? "opencode.json plugin array" : join(opencodeDir, "plugins", "triton-ascend")}`)
+  console.log(`  plugin:    ${options.mode === "npm" ? "opencode.json plugin array" : join(opencodeDir, "plugins", "triton-ascend.js")}`)
   if (configPath) console.log(`  config:    ${configPath}`)
   console.log("")
   console.log("Next: start opencode, select the triton-op-generator agent, then describe the task.")

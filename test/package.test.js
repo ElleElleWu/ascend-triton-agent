@@ -5,7 +5,7 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, sta
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { test } from "node:test"
-import { fileURLToPath, pathToFileURL } from "node:url"
+import { fileURLToPath } from "node:url"
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)))
 const SKILLS = [
@@ -89,11 +89,11 @@ test("installer copies assets and a local plugin", async () => {
       existsSync(join(target, ".opencode", "knowledge", "ops", "triton", "guides", "constraints", "index.md")),
     )
 
-    const pluginPath = join(target, ".opencode", "plugins", "triton-ascend", "index.js")
+    const pluginPath = join(target, ".opencode", "plugins", "triton-ascend.js")
     assert.ok(existsSync(pluginPath))
-    assert.ok(existsSync(join(target, ".opencode", "plugins", "triton-ascend", "lib", "guard.js")))
-    const mod = await import(pathToFileURL(pluginPath).href)
-    assert.equal(typeof mod.TritonAscend, "function")
+    assert.ok(existsSync(join(target, ".opencode", "plugins", "triton-ascend-guard.js")))
+    const entry = readFileSync(pluginPath, "utf8")
+    assert.ok(entry.includes('from "./triton-ascend-guard.js"'))
   } finally {
     rmSync(target, { recursive: true, force: true })
   }

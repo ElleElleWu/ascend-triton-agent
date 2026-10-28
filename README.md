@@ -25,7 +25,7 @@ npx opencode-triton-ascend install
 1. 复制 `agents/` 到 `.opencode/agents/`
 2. 复制 `skills/` 到 `.opencode/skills/`
 3. 复制 `knowledge/` 到 `.opencode/knowledge/`
-4. 默认把插件复制到 `.opencode/plugins/triton-ascend/`，不依赖 npm 发布即可加载
+4. 默认把插件复制到 `.opencode/plugins/triton-ascend.js`（guard helper 同目录），不依赖 npm 发布即可加载
 
 还没发布 npm 时，可以直接从 GitHub 安装：
 
