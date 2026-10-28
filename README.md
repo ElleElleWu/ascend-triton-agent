@@ -135,6 +135,7 @@ npm pack --dry-run
 - npm 包 431 文件、1.6 MB tarball、5.4 MB unpacked；
 - 用 tarball 在临时项目安装，安装器成功复制 10 个 Skill、64 个知识文件，以及本地插件；
 - `import("opencode-triton-ascend")` 只导出 `TritonAscend`；guard helper 在 `lib/guard.js`，不作为插件导出。
+- GitHub Actions `test` 通过；`npm i -D github:ElleElleWu/ascend-triton-agent` 直装验证通过。
 
 ## 首版限制
 
