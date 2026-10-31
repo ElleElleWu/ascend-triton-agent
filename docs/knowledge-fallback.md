@@ -1,6 +1,6 @@
 # Triton-Ascend 核心知识子集
 
-本目录不是 cannbot-knowledge 全量，只保留算子生成/优化最常用的 63 个 Triton 知识文件：
+这是 npm 包内的离线 fallback（63 个 Triton 核心文件）。默认安装会从官方 `cannbot-knowledge` 仓拉取完整知识树；只有 `--core-kb` 才使用本目录。
 
 ```text
 ops/triton/

@@ -75,10 +75,17 @@ test("agent, skills and knowledge are present", () => {
   assert.equal(walk(join(ROOT, "knowledge", "ops")).length, 63)
 })
 
+test("knowledge lock pins the official full KB", () => {
+  const lock = JSON.parse(readFileSync(join(ROOT, "knowledge.lock.json"), "utf8"))
+  assert.equal(lock.repository, "https://gitcode.com/cann/cannbot-knowledge.git")
+  assert.match(lock.ref, /^[0-9a-f]{40}$/)
+  assert.ok(lock.file_count >= 1000)
+})
+
 test("installer copies assets and a local plugin", async () => {
   const target = mkdtempSync(join(tmpdir(), "triton-install-"))
   try {
-    execFileSync(process.execPath, [join(ROOT, "bin", "install.js"), "install", "--target", target], {
+    execFileSync(process.execPath, [join(ROOT, "bin", "install.js"), "install", "--target", target, "--core-kb"], {
       stdio: "pipe",
     })
 
@@ -105,7 +112,7 @@ test("installer --npm preserves existing opencode.json fields", () => {
   const target = mkdtempSync(join(tmpdir(), "triton-preserve-"))
   try {
     cpSync(join(ROOT, "opencode.json.example"), join(target, "opencode.json"))
-    execFileSync(process.execPath, [join(ROOT, "bin", "install.js"), "install", "--target", target, "--npm"], {
+    execFileSync(process.execPath, [join(ROOT, "bin", "install.js"), "install", "--target", target, "--npm", "--core-kb"], {
       stdio: "pipe",
     })
     const config = JSON.parse(readFileSync(join(target, "opencode.json"), "utf8"))

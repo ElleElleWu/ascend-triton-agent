@@ -1,7 +1,7 @@
 {
   "name": "opencode-triton-ascend",
-  "version": "0.1.0",
-  "description": "Triton-Ascend operator generation workflow for opencode: primary agent, 10 skills, core knowledge cards, and baseline guard hooks.",
+  "version": "0.2.0",
+  "description": "Triton-Ascend operator generation workflow for opencode: agent, 10 skills, full cannbot-knowledge fetched at install, and baseline guard hooks.",
   "type": "module",
   "main": "./index.js",
   "exports": "./index.js",
@@ -15,7 +15,9 @@
     "bin/",
     "agents/",
     "skills/",
+    "knowledge.lock.json",
     "knowledge/",
+    "docs/",
     "README.md",
     "LICENSE"
   ],

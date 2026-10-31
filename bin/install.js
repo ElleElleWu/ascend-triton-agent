@@ -1,26 +1,54 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: Apache-2.0
-// Install the opencode agent, skills and knowledge subset into a project.
+// Install the opencode agent, skills and knowledge into a project.
 //
 //   npx opencode-triton-ascend install --target /path/to/project
 //   npx opencode-triton-ascend install --target /path/to/project --npm
+//   npx opencode-triton-ascend install --target /path/to/project --core-kb
+//   npx opencode-triton-ascend knowledge sync --target /path/to/project
 //
-// Default mode copies the plugin into .opencode/plugins/ so it works before the
-// package is published. --npm adds "opencode-triton-ascend" to opencode.json and
-// lets opencode install the plugin from npm instead.
+// By default `install` fetches the complete cannbot-knowledge tree from the
+// official repository at the commit pinned in knowledge.lock.json. The npm
+// tarball only carries a 63-file core fallback; `--core-kb` stays offline.
+// `--kb-latest` and `knowledge sync` track the upstream HEAD, so the KB can
+// evolve without publishing a new npm package.
 
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
+import {
+  DEFAULT_REPOSITORY,
+  defaultCacheRoot,
+  installKnowledge,
+  knowledgeStats,
+  readKnowledgeLock,
+  remoteHead,
+} from "../lib/knowledge.js"
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const PLUGIN_NAME = "opencode-triton-ascend"
 
 function parseArgs(argv) {
-  const out = { target: process.cwd(), mode: "local" }
-  for (let i = 0; i < argv.length; i += 1) {
+  const out = {
+    command: "install",
+    target: process.cwd(),
+    mode: "local",
+    core: false,
+    kbLatest: false,
+    kbRef: null,
+    kbRepo: null,
+    kbCache: null,
+  }
+  let i = 0
+  if (argv[i] === "knowledge") {
+    out.command = "sync"
+    i += 1
+    if (argv[i] === "sync") i += 1
+  } else if (argv[i] === "install") {
+    i += 1
+  }
+  for (; i < argv.length; i += 1) {
     const arg = argv[i]
-    if (arg === "install") continue
     if (arg === "--target" || arg === "-t") {
       const value = argv[i + 1]
       if (!value) throw new Error("--target requires a path")
@@ -37,6 +65,35 @@ function parseArgs(argv) {
       } else {
         out.mode = "npm"
       }
+      continue
+    }
+    if (arg === "--core-kb") {
+      out.core = true
+      continue
+    }
+    if (arg === "--kb-latest") {
+      out.kbLatest = true
+      continue
+    }
+    if (arg === "--kb-ref") {
+      const value = argv[i + 1]
+      if (!value) throw new Error("--kb-ref requires a commit/tag")
+      out.kbRef = value
+      i += 1
+      continue
+    }
+    if (arg === "--kb-repo") {
+      const value = argv[i + 1]
+      if (!value) throw new Error("--kb-repo requires a URL")
+      out.kbRepo = value
+      i += 1
+      continue
+    }
+    if (arg === "--kb-cache") {
+      const value = argv[i + 1]
+      if (!value) throw new Error("--kb-cache requires a path")
+      out.kbCache = resolve(value)
+      i += 1
       continue
     }
     if (arg === "--help" || arg === "-h") {
@@ -78,18 +135,76 @@ function upsertOpencodeConfig(target) {
   return configPath
 }
 
+function help() {
+  console.log(`usage:
+  opencode-triton-ascend install [--target <project>] [--npm] [--core-kb]
+                                 [--kb-latest | --kb-ref <commit>]
+                                 [--kb-repo <url>] [--kb-cache <dir>]
+  opencode-triton-ascend knowledge sync [--target <project>]
+                                        [--kb-ref <commit> | --kb-latest]
+                                        [--kb-repo <url>] [--kb-cache <dir>]
+
+install:
+  default           fetch the full cannbot-knowledge tree at knowledge.lock.json
+  --core-kb         copy only the bundled 63-file core fallback (offline)
+  --kb-latest       fetch the upstream HEAD instead of the locked commit
+  --kb-ref <ref>    fetch a specific commit/tag/branch
+  --npm             register the npm plugin in opencode.json
+
+knowledge sync:
+  replace <project>/.opencode/knowledge with the latest upstream full tree
+  (or --kb-ref <ref>), then update .opencode/knowledge/.cannbot-kb.json.`)
+}
+
+function resolveRef(options) {
+  const repository = options.kbRepo || process.env.TRITON_KB_REPO || DEFAULT_REPOSITORY
+  let ref = options.kbRef
+  if (!ref) {
+    if (options.kbLatest || options.command === "sync") {
+      ref = remoteHead(repository)
+    } else {
+      ref = readKnowledgeLock(PACKAGE_ROOT).ref
+    }
+  }
+  return { repository, ref }
+}
+
+function installKnowledgeFor(options, target) {
+  const { repository, ref } = resolveRef(options)
+  const result = installKnowledge({
+    packageRoot: PACKAGE_ROOT,
+    target,
+    repository,
+    ref,
+    core: options.core,
+    cacheRoot: options.kbCache || defaultCacheRoot(),
+    log: console.log,
+  })
+  const stats = knowledgeStats(result.destination)
+  const mode = result.mode === "full" ? `full @ ${String(result.ref).slice(0, 12)}` : "core fallback"
+  console.log(`  knowledge: ${result.destination} (${mode}, ${result.file_count ?? stats.files} files, ${(stats.bytes / 1024 / 1024).toFixed(1)} MB)`)
+  return { ...result, stats }
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2))
   if (options.help) {
-    console.log("usage: opencode-triton-ascend install [--target <project>] [--npm]")
+    help()
     return
   }
   const target = options.target
-  const opencodeDir = join(target, ".opencode")
 
+  if (options.command === "sync") {
+    console.log(`syncing full knowledge into ${target}`)
+    installKnowledgeFor(options, target)
+    console.log("knowledge sync complete")
+    return
+  }
+
+  const opencodeDir = join(target, ".opencode")
   copyDir(join(PACKAGE_ROOT, "agents"), join(opencodeDir, "agents"))
   copyDir(join(PACKAGE_ROOT, "skills"), join(opencodeDir, "skills"))
-  copyDir(join(PACKAGE_ROOT, "knowledge"), join(opencodeDir, "knowledge"))
+  installKnowledgeFor(options, target)
   copyFile(join(PACKAGE_ROOT, "config.json"), join(opencodeDir, "triton-op-generator.config.json"))
 
   let configPath = null
@@ -110,7 +225,6 @@ function main() {
   console.log(`triton-op-generator installed into ${target}`)
   console.log(`  agents:    ${join(opencodeDir, "agents")}`)
   console.log(`  skills:    ${join(opencodeDir, "skills")}`)
-  console.log(`  knowledge: ${join(opencodeDir, "knowledge")}`)
   console.log(`  config:    ${join(opencodeDir, "triton-op-generator.config.json")}`)
   console.log(`  plugin:    ${options.mode === "npm" ? "opencode.json plugin array" : join(opencodeDir, "plugins", "triton-ascend.js")}`)
   if (configPath) console.log(`  config:    ${configPath}`)
@@ -123,5 +237,8 @@ try {
   main()
 } catch (error) {
   console.error(`opencode-triton-ascend: ${error.message}`)
+  if (!process.argv.includes("--core-kb")) {
+    console.error("If the machine is offline, retry with --core-kb to install the bundled 63-file fallback.")
+  }
   process.exit(1)
 }

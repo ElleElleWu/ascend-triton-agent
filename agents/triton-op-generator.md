@@ -95,10 +95,10 @@ python3 -c "import datetime,random; ts=datetime.datetime.now().strftime('%Y%m%d_
 
 ### 知识库自举（KB bootstrap，强制）
 
-本公开版自带 Triton 核心知识子集，安装到项目根 `.opencode/knowledge`。按优先级解析 `KB_ROOT`：
+默认安装会把完整 `cannbot-knowledge` 知识树拉取到项目根 `.opencode/knowledge`；离线 `--core-kb` 安装时只有 63 文件核心子集。按优先级解析 `KB_ROOT`：
 
 1. 环境变量 `CANNBOT_KNOWLEDGE_ROOT`（已设置且目录存在，指向其 `knowledge/`）；
-2. 项目根 `.opencode/knowledge`（安装器复制）；
+2. 项目根 `.opencode/knowledge`（安装器从官方仓拉取或 core fallback）；
 3. 从当前目录至多 6 级祖先探测 `.opencode/knowledge`。
 
 ```bash
@@ -109,7 +109,7 @@ test -r "$KB_ROOT/ops/triton/guides/constraints/index.md" || echo "WARN: KB not 
 - **KB 就绪判定**：`$KB_ROOT/ops/triton/guides/constraints/index.md` 可读即为就绪。
 - **KB 不可用**：在 `report.md` 标注 `kb_unavailable: true`，流程继续但无 Layer 1 保护。
 - 后续所有 Phase 中 `$KB_ROOT` 均指此处；卡片用 Read 工具按 `$KB_ROOT/<doc-id>` 直接读取。
-- 本公开版不包含 knowledge-query 索引；需要更多知识时按 `constraints/index.md` 和类别卡直接读，不要调用不存在的 `knowledge_query.py`。
+- 安装器只复制 `knowledge/` 树，不包含 knowledge-query CLI/检索服务；需要更多知识时按 `constraints/index.md`、类别卡和 `operator_playbooks/` 直接读，不要调用不存在的 `knowledge_query.py`。
 
 ---
 
