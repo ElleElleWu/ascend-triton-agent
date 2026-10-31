@@ -110,7 +110,7 @@ test("installer --npm preserves existing opencode.json fields", () => {
     })
     const config = JSON.parse(readFileSync(join(target, "opencode.json"), "utf8"))
     assert.equal(config.model, "deepseek/deepseek-chat")
-    assert.ok(config.plugin.includes("opencode-triton-ascend"))
+    assert.ok(config.plugin.includes("opencode-triton-ascend-generator"))
   } finally {
     rmSync(target, { recursive: true, force: true })
   }

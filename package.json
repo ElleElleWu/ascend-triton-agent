@@ -1,12 +1,12 @@
 {
-  "name": "opencode-triton-ascend",
-  "version": "0.2.0",
+  "name": "opencode-triton-ascend-generator",
+  "version": "0.1.0",
   "description": "Triton-Ascend operator generation workflow for opencode: agent, 10 skills, full cannbot-knowledge fetched at install, and baseline guard hooks.",
   "type": "module",
   "main": "./index.js",
   "exports": "./index.js",
   "bin": {
-    "opencode-triton-ascend": "./bin/install.js"
+    "opencode-triton-ascend-generator": "./bin/install.js"
   },
   "files": [
     "index.js",

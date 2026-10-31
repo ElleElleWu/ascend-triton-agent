@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Install the opencode agent, skills and knowledge into a project.
 //
-//   npx opencode-triton-ascend install --target /path/to/project
-//   npx opencode-triton-ascend install --target /path/to/project --npm
-//   npx opencode-triton-ascend install --target /path/to/project --core-kb
-//   npx opencode-triton-ascend knowledge sync --target /path/to/project
+//   npx opencode-triton-ascend-generator install --target /path/to/project
+//   npx opencode-triton-ascend-generator install --target /path/to/project --npm
+//   npx opencode-triton-ascend-generator install --target /path/to/project --core-kb
+//   npx opencode-triton-ascend-generator knowledge sync --target /path/to/project
 //
 // By default `install` fetches the complete cannbot-knowledge tree from the
 // official repository at upstream HEAD (or --kb-ref for a pinned commit). The npm
@@ -25,7 +25,7 @@ import {
 } from "../lib/knowledge.js"
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-const PLUGIN_NAME = "opencode-triton-ascend"
+const PLUGIN_NAME = "opencode-triton-ascend-generator"
 
 function parseArgs(argv) {
   const out = {
@@ -136,10 +136,10 @@ function upsertOpencodeConfig(target) {
 
 function help() {
   console.log(`usage:
-  opencode-triton-ascend install [--target <project>] [--npm] [--core-kb]
+  opencode-triton-ascend-generator install [--target <project>] [--npm] [--core-kb]
                                  [--kb-ref <commit>]
                                  [--kb-repo <url>] [--kb-cache <dir>]
-  opencode-triton-ascend knowledge sync [--target <project>]
+  opencode-triton-ascend-generator knowledge sync [--target <project>]
                                         [--kb-ref <commit>]
                                         [--kb-repo <url>] [--kb-cache <dir>]
 
@@ -233,7 +233,7 @@ function main() {
 try {
   main()
 } catch (error) {
-  console.error(`opencode-triton-ascend: ${error.message}`)
+  console.error(`opencode-triton-ascend-generator: ${error.message}`)
   if (!process.argv.includes("--core-kb")) {
     console.error("If the machine is offline, retry with --core-kb to install the bundled 63-file fallback.")
   }

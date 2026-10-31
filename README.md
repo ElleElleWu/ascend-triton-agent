@@ -1,4 +1,4 @@
-# opencode-triton-ascend
+# opencode-triton-ascend-generator
 
 [![test](https://github.com/ElleElleWu/ascend-triton-agent/actions/workflows/test.yml/badge.svg)](https://github.com/ElleElleWu/ascend-triton-agent/actions/workflows/test.yml)
 
@@ -16,8 +16,8 @@ Triton-Ascend 算子生成与优化工作流，面向 [opencode](https://opencod
 ## 安装
 
 ```bash
-npm i -D opencode-triton-ascend
-npx opencode-triton-ascend install
+npm i -D opencode-triton-ascend-generator
+npx opencode-triton-ascend-generator install
 ```
 
 安装器会：
@@ -32,36 +32,36 @@ npx opencode-triton-ascend install
 
 ```bash
 npm i -D github:ElleElleWu/ascend-triton-agent
-npx opencode-triton-ascend install
+npx opencode-triton-ascend-generator install
 ```
 
 如果包已经发布到 npm，也可以改用：
 
 ```bash
-npx opencode-triton-ascend install --npm
+npx opencode-triton-ascend-generator install --npm
 ```
 
-`--npm` 会把 `opencode-triton-ascend` 写入项目根 `opencode.json` 的 `plugin` 数组；已存在的配置只追加，不覆盖其他字段。
+`--npm` 会把 `opencode-triton-ascend-generator` 写入项目根 `opencode.json` 的 `plugin` 数组；已存在的配置只追加，不覆盖其他字段。
 
 ### 完整 KB 与上游同步
 
 ```bash
 # 默认：拉取 cannbot-knowledge 最新 HEAD 的完整 KB
-npx opencode-triton-ascend install
+npx opencode-triton-ascend-generator install
 
 # 离线：只装 63 文件核心子集
-npx opencode-triton-ascend install --core-kb
+npx opencode-triton-ascend-generator install --core-kb
 
 # 指定 commit/tag
-npx opencode-triton-ascend install --kb-ref <commit-or-tag>
+npx opencode-triton-ascend-generator install --kb-ref <commit-or-tag>
 
 # 已安装项目原地同步到最新上游
-npx opencode-triton-ascend knowledge sync
+npx opencode-triton-ascend-generator knowledge sync
 ```
 
 安装器把上游 `knowledge/` 复制到 `.opencode/knowledge`，并写 `.opencode/knowledge/.cannbot-kb.json` 记录 `repository/ref/file_count/synced_at`。`install` 和 `knowledge sync` 默认解析上游 HEAD，跟随 cannbot-knowledge 演进，不需要重新发 npm 包；需要可复现时用 `--kb-ref <commit>` 固定。
 
-完整 KB 约 9,700 文件 / 104 MB。克隆缓存放在 `~/.cache/opencode-triton-ascend/knowledge/<commit>`（可用 `--kb-cache` 改），同一 commit 重复安装不再下载。
+完整 KB 约 9,700 文件 / 104 MB。克隆缓存放在 `~/.cache/opencode-triton-ascend-generator/knowledge/<commit>`（可用 `--kb-cache` 改），同一 commit 重复安装不再下载。
 
 ## 使用
 
@@ -89,7 +89,7 @@ npx opencode-triton-ascend knowledge sync
 ## 包内结构
 
 ```text
-opencode-triton-ascend/
+opencode-triton-ascend-generator/
 ├── index.js                         # plugin：hooks
 ├── config.json                      # target_speedup / npu_preflight 默认值
 ├── lib/guard.js                     # 路径保护 helper
@@ -168,7 +168,7 @@ npm pack --dry-run
 - 10/10 通过；
 - npm 包 433 文件、约 1.6 MB tarball、5.5 MB unpacked；
 - 用 tarball 在临时项目执行 `--core-kb` 安装，安装器成功复制 10 个 Skill、64 个知识文件，以及本地插件；
-- `import("opencode-triton-ascend")` 只导出 `TritonAscend`；guard helper 在 `lib/guard.js`，不作为插件导出。
+- `import("opencode-triton-ascend-generator")` 只导出 `TritonAscend`；guard helper 在 `lib/guard.js`，不作为插件导出。
 - GitHub Actions `test` 通过；`npm i -D github:ElleElleWu/ascend-triton-agent` 直装验证通过；
 - opencode 1.19.4 下 `debug agent triton-op-generator` 返回完整 prompt（1,114 行 / 37.5 KB），10 个 Skill 可发现。
 
@@ -179,7 +179,7 @@ npm pack --dry-run
 - 完整 KB 安装依赖 git 与 gitcode.com 网络；离线用 `--core-kb`；
 - 未在真实 opencode + Ascend NPU 环境完成端到端联调；
 - 9 个能力 Skill 的脚本来自 cannbot-skills，路径与依赖按 opencode 布局做了复制，尚未逐脚本验证；
-- 未发布到 npm；npm 包名 `opencode-triton-ascend` 目前未被占用；
+- 未发布到 npm；npm 包名 `opencode-triton-ascend-generator` 目前未被占用；
 - 不是 opencode 官方插件，ecosystem 收录需要单独 PR。
 
 ## 许可证
