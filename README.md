@@ -8,7 +8,7 @@ Triton-Ascend 算子生成与优化工作流，面向 [opencode](https://opencod
 
 - 一个主编排 agent：`triton-op-generator`，完整 Phase 0-7 prompt（约 1,100 行）
 - 10 个 Skill：1 个 Phase 0-7 编排 + 9 个能力 Skill
-- 安装时拉取完整 cannbot-knowledge 知识库（当前锁 `4aa438e`，9,740 文件，约 104 MB）；npm 包内只保留 63 文件离线 fallback
+- 安装时从上游 HEAD 拉取完整 cannbot-knowledge 知识库（本次验证 `4aa438e`，9,740 文件，约 104 MB）；npm 包内只保留 63 文件离线 fallback
 - 3 个 hook：baseline 路径保护、知识库路径注入、无 NPU 环境提示
 
 > 这是社区包，不是 Anthropic、DeepSeek 或华为官方插件。生成/验证需要 Ascend NPU 与 CANN；安装和 Skill 发现不需要 NPU。
@@ -46,14 +46,11 @@ npx opencode-triton-ascend install --npm
 ### 完整 KB 与上游同步
 
 ```bash
-# 默认：按 knowledge.lock.json 的 commit 安装完整 KB
+# 默认：拉取 cannbot-knowledge 最新 HEAD 的完整 KB
 npx opencode-triton-ascend install
 
 # 离线：只装 63 文件核心子集
 npx opencode-triton-ascend install --core-kb
-
-# 跟随 cannbot-knowledge 最新 HEAD
-npx opencode-triton-ascend install --kb-latest
 
 # 指定 commit/tag
 npx opencode-triton-ascend install --kb-ref <commit-or-tag>
@@ -62,7 +59,7 @@ npx opencode-triton-ascend install --kb-ref <commit-or-tag>
 npx opencode-triton-ascend knowledge sync
 ```
 
-安装器把上游 `knowledge/` 复制到 `.opencode/knowledge`，并写 `.opencode/knowledge/.cannbot-kb.json` 记录 `repository/ref/file_count/synced_at`。`install` 默认固定 commit，保证可复现；`knowledge sync` 和 `--kb-latest` 解析上游 HEAD，不需要重新发 npm 包。
+安装器把上游 `knowledge/` 复制到 `.opencode/knowledge`，并写 `.opencode/knowledge/.cannbot-kb.json` 记录 `repository/ref/file_count/synced_at`。`install` 和 `knowledge sync` 默认解析上游 HEAD，跟随 cannbot-knowledge 演进，不需要重新发 npm 包；需要可复现时用 `--kb-ref <commit>` 固定。
 
 完整 KB 约 9,700 文件 / 104 MB。克隆缓存放在 `~/.cache/opencode-triton-ascend/knowledge/<commit>`（可用 `--kb-cache` 改），同一 commit 重复安装不再下载。
 
@@ -98,7 +95,6 @@ opencode-triton-ascend/
 ├── lib/guard.js                     # 路径保护 helper
 ├── lib/knowledge.js                 # 全量 KB 拉取/缓存/同步
 ├── bin/install.js                   # 资产安装器
-├── knowledge.lock.json              # 完整 KB 的固定 commit
 ├── docs/knowledge-fallback.md       # 63 文件离线 fallback 说明
 ├── agents/
 │   └── triton-op-generator.md       # 主编排 agent
@@ -146,31 +142,31 @@ npm tarball 不装 9,700 个文件，原因是完整 KB 约 104 MB，会超过 C
 
 | 场景 | 行为 |
 |---|---|
-| `install` 默认 | 从 `https://gitcode.com/cann/cannbot-knowledge.git` 拉取 `knowledge.lock.json` 固定的 commit，复制完整 `knowledge/` |
-| `install --kb-latest` | 解析上游 HEAD，安装最新完整 KB |
+| `install` 默认 | 从 `https://gitcode.com/cann/cannbot-knowledge.git` 拉取 HEAD，复制完整 `knowledge/` |
+| `install --kb-latest` | 兼容参数；默认已经是上游 HEAD |
 | `install --kb-ref <ref>` | 安装指定 commit/tag/branch |
 | `install --core-kb` | 不联网，只复制 npm 包内 63 文件核心子集 |
 | `knowledge sync` | 已安装项目原地更新到上游 HEAD，更新 `.cannbot-kb.json` |
 
-同步演进依靠 `.cannbot-kb.json` 和 `knowledge.lock.json`：
+同步演进依靠 `.cannbot-kb.json` 和每次安装时解析的上游 HEAD：
 
-- 包发布时锁一个已知可用的上游 commit；
-- 用户执行 `knowledge sync` 即可跟上游演进，不需要等新 npm 版本；
-- 需要完全可复现的环境继续用默认 `install`（锁 commit）。
+- `install` / `knowledge sync` 默认解析上游 HEAD，直接跟上游演进；
+- 需要可复现的环境用 `--kb-ref <commit>`；
+- 安装后 `.cannbot-kb.json` 记录本次实际 ref，便于核对。
 
 安装后的 `.opencode/knowledge` 是完整树（`common`、`ops`、`model`、`runtime`、`contrib` 等），包含上游所有 `index.md`、约束卡、playbook 和优化卡。编排 agent 仍按 `constraints/index.md` 路由；如果使用 `--core-kb`，缺失卡会记录 `card_exists: false`。
 
 ## 本地验证
 
 ```bash
-npm test          # 11 项：资产存在性、frontmatter、安装器、KB lock、guard、NPU 事件
+npm test          # 10 项：资产存在性、frontmatter、安装器、guard、NPU 事件
 npm pack --dry-run
 ```
 
 当前结果：
 
-- 11/11 通过；
-- npm 包 434 文件、约 1.6 MB tarball、5.5 MB unpacked；
+- 10/10 通过；
+- npm 包 433 文件、约 1.6 MB tarball、5.5 MB unpacked；
 - 用 tarball 在临时项目执行 `--core-kb` 安装，安装器成功复制 10 个 Skill、64 个知识文件，以及本地插件；
 - `import("opencode-triton-ascend")` 只导出 `TritonAscend`；guard helper 在 `lib/guard.js`，不作为插件导出。
 - GitHub Actions `test` 通过；`npm i -D github:ElleElleWu/ascend-triton-agent` 直装验证通过；

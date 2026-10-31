@@ -75,13 +75,6 @@ test("agent, skills and knowledge are present", () => {
   assert.equal(walk(join(ROOT, "knowledge", "ops")).length, 63)
 })
 
-test("knowledge lock pins the official full KB", () => {
-  const lock = JSON.parse(readFileSync(join(ROOT, "knowledge.lock.json"), "utf8"))
-  assert.equal(lock.repository, "https://gitcode.com/cann/cannbot-knowledge.git")
-  assert.match(lock.ref, /^[0-9a-f]{40}$/)
-  assert.ok(lock.file_count >= 1000)
-})
-
 test("installer copies assets and a local plugin", async () => {
   const target = mkdtempSync(join(tmpdir(), "triton-install-"))
   try {

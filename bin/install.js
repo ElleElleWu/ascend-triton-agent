@@ -8,9 +8,9 @@
 //   npx opencode-triton-ascend knowledge sync --target /path/to/project
 //
 // By default `install` fetches the complete cannbot-knowledge tree from the
-// official repository at the commit pinned in knowledge.lock.json. The npm
+// official repository at upstream HEAD (or --kb-ref for a pinned commit). The npm
 // tarball only carries a 63-file core fallback; `--core-kb` stays offline.
-// `--kb-latest` and `knowledge sync` track the upstream HEAD, so the KB can
+// install and `knowledge sync` both track the upstream HEAD, so the KB can
 // evolve without publishing a new npm package.
 
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -21,7 +21,6 @@ import {
   defaultCacheRoot,
   installKnowledge,
   knowledgeStats,
-  readKnowledgeLock,
   remoteHead,
 } from "../lib/knowledge.js"
 
@@ -138,39 +137,37 @@ function upsertOpencodeConfig(target) {
 function help() {
   console.log(`usage:
   opencode-triton-ascend install [--target <project>] [--npm] [--core-kb]
-                                 [--kb-latest | --kb-ref <commit>]
+                                 [--kb-ref <commit>]
                                  [--kb-repo <url>] [--kb-cache <dir>]
   opencode-triton-ascend knowledge sync [--target <project>]
-                                        [--kb-ref <commit> | --kb-latest]
+                                        [--kb-ref <commit>]
                                         [--kb-repo <url>] [--kb-cache <dir>]
 
 install:
-  default           fetch the full cannbot-knowledge tree at knowledge.lock.json
+  default           fetch the full cannbot-knowledge tree at upstream HEAD
   --core-kb         copy only the bundled 63-file core fallback (offline)
-  --kb-latest       fetch the upstream HEAD instead of the locked commit
-  --kb-ref <ref>    fetch a specific commit/tag/branch
+  --kb-ref <ref>    fetch a specific commit/tag/branch (pin when needed)
+  --kb-latest       accepted for compatibility; HEAD is already the default
   --npm             register the npm plugin in opencode.json
 
 knowledge sync:
   replace <project>/.opencode/knowledge with the latest upstream full tree
-  (or --kb-ref <ref>), then update .opencode/knowledge/.cannbot-kb.json.`)
+  (or --kb-ref <ref>), then update .opencode/knowledge/.cannbot-kb.json.
+
+install and knowledge sync both default to upstream HEAD, so the KB evolves with
+cannbot-knowledge without a new npm release. Use --kb-ref to pin a known commit.`)
 }
 
 function resolveRef(options) {
   const repository = options.kbRepo || process.env.TRITON_KB_REPO || DEFAULT_REPOSITORY
-  let ref = options.kbRef
-  if (!ref) {
-    if (options.kbLatest || options.command === "sync") {
-      ref = remoteHead(repository)
-    } else {
-      ref = readKnowledgeLock(PACKAGE_ROOT).ref
-    }
-  }
+  const ref = options.kbRef || remoteHead(repository)
   return { repository, ref }
 }
 
 function installKnowledgeFor(options, target) {
-  const { repository, ref } = resolveRef(options)
+  const { repository, ref } = options.core
+    ? { repository: options.kbRepo || process.env.TRITON_KB_REPO || DEFAULT_REPOSITORY, ref: null }
+    : resolveRef(options)
   const result = installKnowledge({
     packageRoot: PACKAGE_ROOT,
     target,

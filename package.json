@@ -15,7 +15,6 @@
     "bin/",
     "agents/",
     "skills/",
-    "knowledge.lock.json",
     "knowledge/",
     "docs/",
     "README.md",
